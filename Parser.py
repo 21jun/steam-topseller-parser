@@ -57,11 +57,15 @@ def cleanStr(str, isDiscounted):
     if (len(result) == 2 and isDiscounted):
         if (result[1] == 'Free'):
             return 0
-        return result[1]  # return discounted price
+        elif(result[1].isdigit()==False):
+            return 0
+        return int(result[1])  # return discounted price
     else:
         if (result[0] == 'Free'):
             return 0
-        return result[0]  # return original price
+        elif (result[0].isdigit()==False):
+            return 0
+        return int(result[0])  # return original price
 
 
 def cleanID(id, isTitle):
@@ -76,6 +80,7 @@ def cleanID(id, isTitle):
 
 page = 1
 games = []
+date = datePass()
 
 for page in range(1, 41):
     # sleep(0.1)
@@ -102,14 +107,14 @@ for page in range(1, 41):
         games.append({'rank': int(i + 1 + (page - 1) * 25),
                       'title': titles[i].text,
                       'release': cleanDate(release_dates[i].text),
-                      'date': datePass(),
-                      'price': int(cleanStr(prices[i].text, False)),
-                      'price_discounted': int(cleanStr(prices[i].text, True)),
+                      'date': date,
+                      'price': (cleanStr(prices[i].text, False)),
+                      'price_discounted': (cleanStr(prices[i].text, True)),
                       'id_num': cleanID(links[i], False),
                       'id_title': cleanID(links[i], True),
                       'type': links[i].get('href').split('/')[3]})
 
-for i in range(0, 50):
+for i in range(0, 1000):
     print(
         games[i]['rank'],
         games[i]['title'],
