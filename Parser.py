@@ -1,6 +1,7 @@
 import odbc
 from datetime import datetime
 from time import sleep
+import Checker
 import requests
 from bs4 import BeautifulSoup
 
@@ -137,6 +138,5 @@ for i in range(0, 1000):
         games[i]['title'], games[i]['rank'], games[i]['price'], games[i]['price_discounted'], games[i]['date'],
         games[i]['release'], games[i]['type'], games[i]['id_title'], games[i]['id_num']))
 
-db.execute("SELECT * FROM oasis.games")
-table = db.fetchall()
-print(table)
+# check db
+Checker.check()
