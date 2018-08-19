@@ -107,7 +107,7 @@ def getReviews(info):
 ####
 connect = odbc.odbc('oasis')
 db = connect.cursor()
-db.execute("SELECT id_title, id_num, type FROM oasis.games LIMIT 100")
+db.execute("SELECT id_title, id_num, type FROM oasis.games LIMIT 200")
 result = db.fetchall()
 
 id_num = []
@@ -123,7 +123,7 @@ for i in result:
 
 games = []
 
-for i in range(40, 100):
+for i in range(100, 200):
     if(id_title[i]=='NONE'):
         continue
     game = {}
