@@ -19,10 +19,11 @@ def cleanNum(str):
     result = str.replace('(', '')
     result = result.replace(')', '')
     result = result.replace(',', '')
-    if(result.isdigit()):
-        return result
-    else:
-        return 0
+    # if (result.isdigit()):
+    #     return result
+    # else:
+    #     return 0
+    return result
 
 
 def getTags(tags):
@@ -37,37 +38,71 @@ def getTags(tags):
 
 
 def getReviews(info):
-    r1 = info[0].text.replace('\t', '').replace('\r', '').split('\n')
-    while ('' in r1):
-        r1.remove('')
+    # print(info)
+    result = info.replace('\t', '').replace('\r', '').split('\n')
+    while ('' in result):
+        result.remove('')
+    print(result)
 
-    r2 = info[1].text.replace('\t', '').replace('\r', '').split('\n')
-    while ('' in r2):
-        r2.remove('')
+    if ('Recent' in result[0]):
 
-    if ('Recent' in r1[0]):  # recent 리뷰가 있으면 all 리뷰도 존재(r2)
+        idx = 1
+
+        if (cleanNum(result[2]).isdigit() == False):
+            print("False")
+            idx = 0
+            recent_review_num = 0
+            recent_review = result[1]
+        else:
+            recent_review_num = cleanNum(result[idx + 1])
+            recent_review = result[1]
+
+        recent_review_percentage = '0%'
+        a = result[idx + 2].split(' ')
+        for col in a:
+            if ('%' in col):
+                recent_review_percentage = col
+
+        all_review_percentage = '0%'
+        a = result[idx + 6].split(' ')
+        for col in a:
+            if ('%' in col):
+                all_review_percentage = col
+
         return {
-            'recent_review': r1[1],
-            'recent_review_num': cleanNum(r1[2]),
-            'all_review': r2[1],
-            'all_review_num': cleanNum(r2[2])
-        }
+            'recent_review': recent_review,
+            'recent_review_num': recent_review_num,
+            'recent_review_percentage': recent_review_percentage,
+            'all_review': result[idx + 4],
+            'all_review_num': cleanNum(result[idx + 5]),
+            'all_review_percentage': all_review_percentage
 
-    else:  # recent 리뷰가 없으면 all 리뷰가 r1
-        if ('No' in r1[1]):
+        }
+    else:
+        if ('No' in result[1]):
             return {
                 'recent_review': 'NONE',
                 'recent_review_num': 0,
+                'recent_review_percentage': '0%',
                 'all_review': 'NONE',
-                'all_review_num': 0
+                'all_review_num': 0,
+                'all_review_percentage': '0%'
             }
+
+        all_review_percentage = '0%'
+        a = result[3].split(' ')
+        for col in a:
+            if ('%' in col):
+                all_review_percentage = col
+
         return {
             'recent_review': 'NONE',
             'recent_review_num': 0,
-            'all_review': r1[1],
-            'all_review_num': cleanNum(r1[2])
+            'recent_review_percentage': '0%',
+            'all_review': result[1],
+            'all_review_num': cleanNum(result[2]),
+            'all_review_percentage': all_review_percentage
         }
-
 
 ####
 connect = odbc.odbc('oasis')
@@ -88,8 +123,9 @@ for i in result:
 
 games = []
 
-for i in range(0, 10):
-
+for i in range(40, 100):
+    if(id_title[i]=='NONE'):
+        continue
     game = {}
     url = 'https://store.steampowered.com/' + str(type[i]) + '/' + str(id_num[i]) + '/' + str(id_title[i])
     req = requests.get(url)
@@ -116,7 +152,7 @@ for i in range(0, 10):
     )
 
     info = soup.select(
-        '#game_highlights > div > div > div > div > div'
+        '#game_highlights > div > div > div.glance_ctn_responsive_left > div '
     )
 
     if (ageCheck or contentWarning):
@@ -125,14 +161,16 @@ for i in range(0, 10):
         print("----------------------------------")
     else:
         print(id_title[i], "  ", i)
-        a = getReviews(info)
+        a = getReviews(info[0].text)
         print(a)
         game['id_title'] = id_title[i]
-        game['id_num']= id_num[i]
+        game['id_num'] = id_num[i]
         game['recent_review'] = a['recent_review']
         game['recent_review_num'] = a['recent_review_num']
+        game['recent_review_percentage'] = a['recent_review_percentage']
         game['all_review'] = a['all_review']
         game['all_review_num'] = a['all_review_num']
+        game['all_review_percentage'] = a['all_review_percentage']
         if (developer):
             print((developer[0].text))
             game['developer'] = developer[0].text
@@ -159,11 +197,11 @@ for i in games:
 connect = odbc.odbc('oasis')
 db = connect.cursor()
 sql = '''
-    INSERT INTO oasis.test_page(id_title, id_num, recent_review, recent_review_num, all_review, all_review_num, tag) VALUES ("%s","%s","%s","%d","%s","%d","%s")
+    INSERT INTO oasis.test_page(id_title, id_num, recent_review, recent_review_num, recent_review_percentage, all_review, all_review_num, all_review_percentage, tag) VALUES ("%s","%s","%s","%d","%s","%s","%d","%s","%s")
     '''
 for i in games:
     db.execute(sql % (
-        i['id_title'], i['id_num'], i['recent_review'], int(i['recent_review_num']), i['all_review'], int(i['all_review_num']),
+        i['id_title'], i['id_num'], i['recent_review'], int(i['recent_review_num']), i['recent_review_percentage'],
+        i['all_review'], int(i['all_review_num']), i['all_review_percentage'],
         i['tag']
     ))
-

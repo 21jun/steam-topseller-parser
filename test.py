@@ -6,39 +6,71 @@ from bs4 import BeautifulSoup
 
 
 def getReviews(info):
-    r1 = info[0].text.replace('\t', '').replace('\r', '').split('\n')
-    while ('' in r1):
-        r1.remove('')
+    # print(info)
+    result = info.replace('\t', '').replace('\r', '').split('\n')
+    while ('' in result):
+        result.remove('')
+    print(result)
 
-    r2 = info[1].text.replace('\t', '').replace('\r', '').split('\n')
-    while ('' in r2):
-        r2.remove('')
+    if ('Recent' in result[0]):
 
-    if ('Recent' in r1[0]):  # recent 리뷰가 있으면 all 리뷰도 존재(r2)
+        idx = 1
+
+        if (cleanNum(result[2]).isdigit() == False):
+            print("False")
+            idx = 0
+            recent_review_num = 0
+            recent_review = result[1]
+        else:
+            recent_review_num = cleanNum(result[idx + 1])
+            recent_review = result[1]
+
+        recent_review_percentage = '0%'
+        a = result[idx + 2].split(' ')
+        for col in a:
+            if ('%' in col):
+                recent_review_percentage = col
+
+        all_review_percentage = '0%'
+        a = result[idx + 6].split(' ')
+        for col in a:
+            if ('%' in col):
+                all_review_percentage = col
+
         return {
-            'recent_review': r1[1],
-            'recent_review_num': cleanNum(r1[2]),
-            'all_review': r2[1],
-            'all_review_num': cleanNum(r2[2])
-        }
+            'recent_review': recent_review,
+            'recent_review_num': recent_review_num,
+            'recent_review_percentage': recent_review_percentage,
+            'all_review': result[idx + 4],
+            'all_review_num': cleanNum(result[idx + 5]),
+            'all_review_percentage': all_review_percentage
 
-    else:  # recent 리뷰가 없으면 all 리뷰가 r1
-        if ('No' in r1[1]):
+        }
+    else:
+        if ('No' in result[1]):
             return {
                 'recent_review': 'NONE',
                 'recent_review_num': 0,
+                'recent_review_percentage': '0%',
                 'all_review': 'NONE',
-                'all_review_num': 0
+                'all_review_num': 0,
+                'all_review_percentage': '0%'
             }
+
+        all_review_percentage = '0%'
+        a = result[3].split(' ')
+        for col in a:
+            if ('%' in col):
+                all_review_percentage = col
+
         return {
             'recent_review': 'NONE',
             'recent_review_num': 0,
-            'all_review': r1[1],
-            'all_review_num': cleanNum(r1[2])
+            'recent_review_percentage': '0%',
+            'all_review': result[1],
+            'all_review_num': cleanNum(result[2]),
+            'all_review_percentage': all_review_percentage
         }
-
-def getReview2(info):
-    print(info[0])
 
 
 def cleanStr(str):
@@ -47,7 +79,7 @@ def cleanStr(str):
     result = result.replace('\n', ' ')
     # result = result.replace('  ', '')
     # result = result.replace(' ','')
-    result = result.split(' ')
+    # result = result.split(' ')
     return result
 
 
@@ -55,14 +87,11 @@ def cleanNum(str):
     result = str.replace('(', '')
     result = result.replace(')', '')
     result = result.replace(',', '')
-    if(result.isdigit()):
-        return result
-    else:
-        return 0
+    return result
 
 
 id_title = ''
-id_num = '359550'
+id_num = '552990'
 type = 'app'
 
 url = 'https://store.steampowered.com/' + str(type) + '/' + str(id_num) + '/' + str(id_title)
@@ -95,9 +124,11 @@ publisher = soup.select(
 recent_review = soup.select(
     '#game_highlights > div > div > div > div > div > div > span'
 )
+
 # game_highlights > div.rightcol > div > div.glance_ctn_responsive_left > div
+
 info = soup.select(
-    '#game_highlights > div > div > div.glance_ctn_responsive_left > div'
+    '#game_highlights > div > div > div.glance_ctn_responsive_left > div '
 )
 
 info2 = soup.select(
@@ -106,15 +137,16 @@ info2 = soup.select(
 
 information = info[0]
 
-#print(information)
+# print(information)
+a = getReviews(information.text)
+print(a)
+# print(information.text)
+# getReview2(info[0].text)
+# getReview2(info2)
 
-
-#getReview2(info[0])
-#getReview2(info2)
-
-for i in information:
-    print(i)
-    print('========================================================')
+# for i in information:
+#     print(i)
+#     print('========================================================')
 
 # print(len(info))
 # print(len(info2))
