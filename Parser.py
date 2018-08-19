@@ -139,4 +139,4 @@ for i in range(0, 1000):
         games[i]['release'], games[i]['type'], games[i]['id_title'], games[i]['id_num']))
 
 # check db
-Checker.check()
+Checker.check('games')
