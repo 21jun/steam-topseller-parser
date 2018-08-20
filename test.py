@@ -71,6 +71,15 @@ def getReviews(info):
             'all_review_num': cleanNum(result[2]),
             'all_review_percentage': all_review_percentage
         }
+def getTags(tags):
+    result = tags.replace('\t', '')
+    result = result.replace('\r', '')
+    result = result.replace('\n', ' ')
+    result = result.replace('+', '')
+    result = result.replace('  ', '')
+    result = result.split(' ')
+    result.remove('')
+    return result
 
 
 def cleanStr(str):
@@ -91,9 +100,9 @@ def cleanNum(str):
 
 
 id_title = ''
-id_num = '552990'
+id_num = '375530'
 type = 'app'
-
+# {'id_title': 'They_Are_Billions', 'id_num': '644930', 'recent_review': 'Mostly Positive', 'recent_review_num': 0, 'recent_review_percentage': '78%', 'all_review': 'No user reviews', 'all_review_num': 'Release Date:', 'all_review_percentage': '0%', 'developer': 'Numantian Games', 'publisher': 'Numantian Games', 'tag': 'Early,Access,Base,Building,Strategy,Survival,Zombies,RTS,Steampunk,Post-apocalyptic,City,Builder,Building,Tower,Defense,Singleplayer,Resource,Management,Real-Time,with,Pause,Early,Access,Tactical,Difficult,Management,Indie,Isometric'}
 url = 'https://store.steampowered.com/' + str(type) + '/' + str(id_num) + '/' + str(id_title)
 req = requests.get(url)
 html = req.text
@@ -131,80 +140,38 @@ info = soup.select(
     '#game_highlights > div > div > div.glance_ctn_responsive_left > div '
 )
 
-info2 = soup.select(
-    '#game_highlights > div > div > div > div > div'
-)
-
 information = info[0]
 
 # print(information)
 a = getReviews(information.text)
-print(a)
-# print(information.text)
-# getReview2(info[0].text)
-# getReview2(info2)
+#print(a)
 
-# for i in information:
-#     print(i)
-#     print('========================================================')
-
-# print(len(info))
-# print(len(info2))
-#
-# for i in info2:
-#     print(i)
-#     print('---------------------')
-
-# print(info[0])
-# print(len(info[0]))
-# a = getReviews(info)
-# print(a)
-#
-# if('Recent'in rrr[0]):
-#     print("--Recent Reviews--")
-#     for i in rrr:
-#         print(i)
-#     print("--All Reviews--")
-#     for i in rrr:
-#         print(i)
-#
-# if('All' in rrr[0]):
-#     print("--All Reviews--")
-#     for i in rrr:
-#         print(i)
-# print(rrr[0])
-# print(rrr[1])
-# print(rrr[2])
+game = {}
+game['id_title'] = id_title
+game['id_num'] = id_num
+game['recent_review'] = a['recent_review']
+game['recent_review_num'] = a['recent_review_num']
+game['recent_review_percentage'] = a['recent_review_percentage']
+game['all_review'] = a['all_review']
+game['all_review_num'] = a['all_review_num']
+game['all_review_percentage'] = a['all_review_percentage']
+if (developer):
+    print((developer[0].text))
+    game['developer'] = developer[0].text
+else:
+    game['developer'] = 'NONE'
+if (publisher and len(publisher) > 1):
+    print(publisher[1].text)
+    game['publisher'] = publisher[1].text
+else:
+    game['publisher'] = 'NONE'
+if (tags):
+    print(getTags(tags[0].text))
+    _tags = ','.join(getTags(tags[0].text))
+    game['tag'] = _tags
+else:
+    game['tag'] = 'NONE'
+print("----------------------------------")
 
 
-# print(reviews[0].text)
-# print(reviews[1].text)
-#
-# print(reviews[3].text)
-# print(reviews[4].text)
-
-# dev = info[0].find_all("div")
-# print(cleanStr(dev[1].text))
-# print(cleanStr(info[0].text))
-
-
-# if (ageCheck or contentWarning):
-#
-#     print("age check")
-#     print("----------------------------------")
-# else:
-#     print(id_title)
-#     getReview(recent_review)
-
-
-# print(id_title)
-# if (recent_review):
-#     print(recent_review[0].text)
-#     print(cleanStr(recent_review[1].text))
-# if (developer):
-#     print((developer[0].text))
-# if (publisher):
-#     print(publisher[1].text)
-# if (tags):
-#     print(cleanStr(tags[0].text))
-# print("----------------------------------")
+print(game)

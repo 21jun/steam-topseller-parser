@@ -104,10 +104,12 @@ def getReviews(info):
             'all_review_percentage': all_review_percentage
         }
 
+
 ####
 connect = odbc.odbc('oasis')
 db = connect.cursor()
-db.execute("SELECT id_title, id_num, type FROM oasis.games LIMIT 200")
+
+db.execute("select id_title, id_num, type, max(title) from oasis.games group by id_title")
 result = db.fetchall()
 
 id_num = []
@@ -121,13 +123,33 @@ for i in result:
 
 ####
 
-games = []
 
-for i in range(100, 200):
-    if(id_title[i]=='NONE'):
+connect = odbc.odbc('oasis')
+db = connect.cursor()
+sql = '''
+    INSERT INTO oasis.test_page(id_title, id_num, recent_review, recent_review_num, recent_review_percentage, all_review, all_review_num, all_review_percentage, tag) VALUES ("%s","%s","%s","%d","%s","%s","%d","%s","%s")
+    '''
+
+games = []
+cnt = 0
+total_cnt = 0
+total_row = len(result)
+pass_cnt = 0
+
+for i in result:
+    # if(pass_cnt<328):
+    #     pass_cnt=pass_cnt+1
+    #     continue
+    # sleep(0.1)
+    total_cnt = total_cnt + 1
+    id_title = i[0]
+    id_num = i[1]
+    type = i[2]
+
+    if (id_title == 'NONE'):
         continue
     game = {}
-    url = 'https://store.steampowered.com/' + str(type[i]) + '/' + str(id_num[i]) + '/' + str(id_title[i])
+    url = 'https://store.steampowered.com/' + str(type) + '/' + str(id_num) + '/' + str(id_title)
     req = requests.get(url)
     html = req.text
     soup = BeautifulSoup(html, 'html.parser')
@@ -156,15 +178,16 @@ for i in range(100, 200):
     )
 
     if (ageCheck or contentWarning):
-        print(id_title[i], "  ", i)
+        print(id_title)
         print("age check")
-        print("----------------------------------")
+        print("--------------------END--------------------", '[', total_cnt, '/', total_row, ']', '----------------------------')
     else:
-        print(id_title[i], "  ", i)
+        cnt = cnt + 1
+        print(id_title)
         a = getReviews(info[0].text)
         print(a)
-        game['id_title'] = id_title[i]
-        game['id_num'] = id_num[i]
+        game['id_title'] = id_title
+        game['id_num'] = id_num
         game['recent_review'] = a['recent_review']
         game['recent_review_num'] = a['recent_review_num']
         game['recent_review_percentage'] = a['recent_review_percentage']
@@ -176,7 +199,7 @@ for i in range(100, 200):
             game['developer'] = developer[0].text
         else:
             game['developer'] = 'NONE'
-        if (publisher):
+        if (publisher and len(publisher) > 1):
             print(publisher[1].text)
             game['publisher'] = publisher[1].text
         else:
@@ -187,21 +210,18 @@ for i in range(100, 200):
             game['tag'] = _tags
         else:
             game['tag'] = 'NONE'
-        print("----------------------------------")
 
-        games.append(game)
+        print("----------------SQL-INSERT-----------------", '----------------------------')
+        print(game)
+        try:
+            db.execute(sql % (
+                game['id_title'], game['id_num'], game['recent_review'], int(game['recent_review_num']),
+                game['recent_review_percentage'],
+                game['all_review'], int(game['all_review_num']), game['all_review_percentage'],
+                game['tag']
+            ))
+        except ValueError:
+            print("EXCEPTION OCCUR")
+            pass
 
-for i in games:
-    print(i)
-
-connect = odbc.odbc('oasis')
-db = connect.cursor()
-sql = '''
-    INSERT INTO oasis.test_page(id_title, id_num, recent_review, recent_review_num, recent_review_percentage, all_review, all_review_num, all_review_percentage, tag) VALUES ("%s","%s","%s","%d","%s","%s","%d","%s","%s")
-    '''
-for i in games:
-    db.execute(sql % (
-        i['id_title'], i['id_num'], i['recent_review'], int(i['recent_review_num']), i['recent_review_percentage'],
-        i['all_review'], int(i['all_review_num']), i['all_review_percentage'],
-        i['tag']
-    ))
+        print("--------------------END--------------------", '[', total_cnt, '/', total_row, ']', '----------------------------')
