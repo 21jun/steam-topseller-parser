@@ -106,7 +106,7 @@ for page in range(1, 41):
 
     for i in range(0, 25):
         games.append({'rank': int(i + 1 + (page - 1) * 25),
-                      'title': titles[i].text,
+                      'title': titles[i].text.replace('\"',"'"),
                       'release': cleanDate(release_dates[i].text),
                       'date': date,
                       'price': (cleanStr(prices[i].text, False)),
