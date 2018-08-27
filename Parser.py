@@ -58,13 +58,13 @@ def cleanStr(str, isDiscounted):
     if (len(result) == 2 and isDiscounted):
         if (result[1] == 'Free'):
             return 0
-        elif(result[1].isdigit()==False):
+        elif (result[1].isdigit() == False):
             return 0
         return int(result[1])  # return discounted price
     else:
         if (result[0] == 'Free'):
             return 0
-        elif (result[0].isdigit()==False):
+        elif (result[0].isdigit() == False):
             return 0
         return int(result[0])  # return original price
 
@@ -106,7 +106,7 @@ for page in range(1, 41):
 
     for i in range(0, 25):
         games.append({'rank': int(i + 1 + (page - 1) * 25),
-                      'title': titles[i].text.replace('\"',"'"),
+                      'title': titles[i].text.replace('\"', "'"),
                       'release': cleanDate(release_dates[i].text),
                       'date': date,
                       'price': (cleanStr(prices[i].text, False)),
