@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-def monthConvertor(month):
+def month_converter(month):
     return {
         'Jan': '1',
         'Feb': '2',
@@ -23,57 +23,57 @@ def monthConvertor(month):
     }[month]
 
 
-def cleanDate(date):
-    if (date == ''):
+def clean_date(date):
+    if date == '':
         return '0000-00-00'
     date = date.replace(',', '')
     date = date.replace('.', '')
     date = date.split(' ')
-    if (len(date) < 3):
+    if len(date) < 3:
         return '0000-00-00'
-    if ('th' in date[1]):
-        result = date[2] + '-' + monthConvertor(date[0][0:3]) + '-' + date[1].replace('th', '')
-    elif (date[1].isdigit()):
-        result = date[2] + '-' + monthConvertor(date[0]) + '-' + date[1]
+    if 'th' in date[1]:
+        result = date[2] + '-' + month_converter(date[0][0:3]) + '-' + date[1].replace('th', '')
+    elif date[1].isdigit():
+        result = date[2] + '-' + month_converter(date[0]) + '-' + date[1]
     else:
-        result = date[2] + '-' + monthConvertor(date[1]) + '-' + date[0]
+        result = date[2] + '-' + month_converter(date[1]) + '-' + date[0]
     return result
 
 
-def datePass():
+def date_pass():
     now = datetime.now()
     result = "%s-%s-%s %s:%s:%s" % (now.year, now.month, now.day, now.hour, now.minute, now.second)
     return result
 
 
-def cleanStr(str, isDiscounted):
+def clean_str(str, isDiscounted):
     result = str.replace('\t', '')
     result = result.replace('\r', '')
     result = result.replace('\n', '')
     result = result.replace('₩', '')
     result = result.replace(',', '')
-    if (result == ''):
+    if result == '':
         return 0
     result = result.split()
-    if (len(result) == 2 and isDiscounted):
-        if (result[1] == 'Free'):
+    if len(result) == 2 and isDiscounted:
+        if result[1] == 'Free':
             return 0
-        elif (result[1].isdigit() == False):
+        elif not result[1].isdigit():
             return 0
         return int(result[1])  # return discounted price
     else:
-        if (result[0] == 'Free'):
+        if result[0] == 'Free':
             return 0
-        elif (result[0].isdigit() == False):
+        elif not result[0].isdigit():
             return 0
         return int(result[0])  # return original price
 
 
-def cleanID(id, isTitle):
+def clean_id(id, isTitle):
     result = id.get('href')
-    if (isTitle == False):
+    if not isTitle:
         return result.split('/')[4]  # return id_num (number)
-    elif (result.split('/')[3] == 'app'):
+    elif result.split('/')[3] == 'app':
         return result.split('/')[5]  # return id_title (string)
     else:
         return 'NONE'
@@ -81,7 +81,7 @@ def cleanID(id, isTitle):
 
 page = 1
 games = []
-date = datePass()
+date = date_pass()
 
 for page in range(1, 41):
     # sleep(0.1)
@@ -107,12 +107,12 @@ for page in range(1, 41):
     for i in range(0, 25):
         games.append({'rank': int(i + 1 + (page - 1) * 25),
                       'title': titles[i].text.replace('\"', "'"),
-                      'release': cleanDate(release_dates[i].text),
+                      'release': clean_date(release_dates[i].text),
                       'date': date,
-                      'price': (cleanStr(prices[i].text, False)),
-                      'price_discounted': (cleanStr(prices[i].text, True)),
-                      'id_num': cleanID(links[i], False),
-                      'id_title': cleanID(links[i], True),
+                      'price': (clean_str(prices[i].text, False)),
+                      'price_discounted': (clean_str(prices[i].text, True)),
+                      'id_num': clean_id(links[i], False),
+                      'id_title': clean_id(links[i], True),
                       'type': links[i].get('href').split('/')[3]})
 
 for i in range(0, 1000):

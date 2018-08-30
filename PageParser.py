@@ -27,13 +27,22 @@ def cleanNum(str):
 
 
 def getTags(tags):
-    result = tags.replace('\t', '')
-    result = result.replace('\r', '')
-    result = result.replace('\n', ' ')
-    result = result.replace('+', '')
-    result = result.replace('  ', '')
-    result = result.split(' ')
-    result.remove('')
+    try:
+        result = tags.replace('\t', '')
+        result = result.replace('\r', '')
+        result = result.replace('\n', ' ')
+        result = result.replace('+', '')
+        result = result.replace('  ', '')
+        result = result.split(' ')
+        result.remove('')
+    except:
+        print("--ERROR--")
+    return result
+
+
+def date_pass():
+    now = datetime.now()
+    result = "%s-%s-%s %s:%s:%s" % (now.year, now.month, now.day, now.hour, now.minute, now.second)
     return result
 
 
@@ -127,7 +136,9 @@ for i in result:
 connect = odbc.odbc('oasis')
 db = connect.cursor()
 sql = '''
-    INSERT INTO oasis.test_page(id_title, id_num, recent_review, recent_review_num, recent_review_percentage, all_review, all_review_num, all_review_percentage, tag) VALUES ("%s","%s","%s","%d","%s","%s","%d","%s","%s")
+    INSERT INTO oasis.game_page(id_title, id_num, recent_review, recent_review_num, recent_review_percentage,
+    all_review, all_review_num, all_review_percentage, tag, date) 
+    VALUES ("%s","%s","%s","%d","%s","%s","%d","%s","%s","%s")
     '''
 
 games = []
@@ -135,6 +146,7 @@ cnt = 0
 total_cnt = 0
 total_row = len(result)
 pass_cnt = 0
+now = date_pass()
 
 for i in result:
     # if(pass_cnt<328):
@@ -146,7 +158,8 @@ for i in result:
     id_num = i[1]
     type = i[2]
 
-    if (id_title == 'NONE'):
+
+    if id_title == 'NONE':
         continue
     game = {}
     url = 'https://store.steampowered.com/' + str(type) + '/' + str(id_num) + '/' + str(id_title)
@@ -164,11 +177,11 @@ for i in result:
     tags = soup.select(
         '#game_highlights > div > div > div > div > div.glance_tags.popular_tags'
     )
-    # developers_list > a
+
     developer = soup.select(
         '#developers_list > a'
     )
-    # game_highlights > div.rightcol > div > div.glance_ctn_responsive_left > div > div:nth-child(5) > div.summary.column > a
+
     publisher = soup.select(
         '#game_highlights > div > div > div > div > div > div.summary.column > a'
     )
@@ -177,51 +190,64 @@ for i in result:
         '#game_highlights > div > div > div.glance_ctn_responsive_left > div '
     )
 
-    if (ageCheck or contentWarning):
+    if ageCheck or contentWarning:
         print(id_title)
         print("age check")
-        print("--------------------END--------------------", '[', total_cnt, '/', total_row, ']', '----------------------------')
+        print("--------------------END--------------------", '[', total_cnt, '/', total_row, ']',
+              '----------------------------')
     else:
         cnt = cnt + 1
         print(id_title)
-        a = getReviews(info[0].text)
-        print(a)
-        game['id_title'] = id_title
-        game['id_num'] = id_num
-        game['recent_review'] = a['recent_review']
-        game['recent_review_num'] = a['recent_review_num']
-        game['recent_review_percentage'] = a['recent_review_percentage']
-        game['all_review'] = a['all_review']
-        game['all_review_num'] = a['all_review_num']
-        game['all_review_percentage'] = a['all_review_percentage']
-        if (developer):
-            print((developer[0].text))
-            game['developer'] = developer[0].text
-        else:
-            game['developer'] = 'NONE'
-        if (publisher and len(publisher) > 1):
-            print(publisher[1].text)
-            game['publisher'] = publisher[1].text
-        else:
-            game['publisher'] = 'NONE'
-        if (tags):
-            print(getTags(tags[0].text))
-            _tags = ','.join(getTags(tags[0].text))
-            game['tag'] = _tags
-        else:
-            game['tag'] = 'NONE'
 
-        print("----------------SQL-INSERT-----------------", '----------------------------')
-        print(game)
         try:
-            db.execute(sql % (
-                game['id_title'], game['id_num'], game['recent_review'], int(game['recent_review_num']),
-                game['recent_review_percentage'],
-                game['all_review'], int(game['all_review_num']), game['all_review_percentage'],
-                game['tag']
-            ))
-        except ValueError:
-            print("EXCEPTION OCCUR")
-            pass
+            review = getReviews(info[0].text)
+            print(review)
 
-        print("--------------------END--------------------", '[', total_cnt, '/', total_row, ']', '----------------------------')
+            game['id_title'] = id_title
+            game['id_num'] = id_num
+            game['recent_review'] = review['recent_review']
+            game['recent_review_num'] = review['recent_review_num']
+            game['recent_review_percentage'] = review['recent_review_percentage']
+            game['all_review'] = review['all_review']
+            game['all_review_num'] = review['all_review_num']
+            game['all_review_percentage'] = review['all_review_percentage']
+            game['date'] = now
+
+            if developer:
+                print(developer[0].text)
+                game['developer'] = developer[0].text
+            else:
+                game['developer'] = 'NONE'
+            if publisher and len(publisher) > 1:
+                print(publisher[1].text)
+                game['publisher'] = publisher[1].text
+            else:
+                game['publisher'] = 'NONE'
+            if (tags):
+                print(getTags(tags[0].text))
+                _tags = ','.join(getTags(tags[0].text))
+                game['tag'] = _tags
+            else:
+                game['tag'] = 'NONE'
+
+            print("----------------SQL-INSERT-----------------", '----------------------------')
+            print(game)
+            try:
+                db.execute(sql % (
+                    game['id_title'], game['id_num'], game['recent_review'], int(game['recent_review_num']),
+                    game['recent_review_percentage'],
+                    game['all_review'], int(game['all_review_num']), game['all_review_percentage'],
+                    game['tag'], game['date']
+                ))
+            except ValueError:
+                print("EXCEPTION OCCUR")
+                pass
+
+            print("--------------------END--------------------", '[', total_cnt, '/', total_row, ']',
+                  '----------------------------')
+
+        except IndexError:
+            print("--------------------INDEX-OUT-OF-RANGE--------------------")
+            print("PAGE REMOVED")
+            print("--------------------END--------------------", '[', total_cnt, '/', total_row, ']',
+                  '----------------------------')

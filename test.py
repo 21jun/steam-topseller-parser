@@ -72,13 +72,16 @@ def getReviews(info):
             'all_review_percentage': all_review_percentage
         }
 def getTags(tags):
-    result = tags.replace('\t', '')
-    result = result.replace('\r', '')
-    result = result.replace('\n', ' ')
-    result = result.replace('+', '')
-    result = result.replace('  ', '')
-    result = result.split(' ')
-    result.remove('')
+    try:
+        result = tags.replace('\t', '')
+        result = result.replace('\r', '')
+        result = result.replace('\n', ' ')
+        result = result.replace('+', '')
+        result = result.replace('  ', '')
+        result = result.split(' ')
+        result.remove('')
+    except:
+        print("EXCEPT")
     return result
 
 
@@ -100,13 +103,16 @@ def cleanNum(str):
 
 
 id_title = ''
-id_num = '375530'
+id_num = '740080'
 type = 'app'
 # {'id_title': 'They_Are_Billions', 'id_num': '644930', 'recent_review': 'Mostly Positive', 'recent_review_num': 0, 'recent_review_percentage': '78%', 'all_review': 'No user reviews', 'all_review_num': 'Release Date:', 'all_review_percentage': '0%', 'developer': 'Numantian Games', 'publisher': 'Numantian Games', 'tag': 'Early,Access,Base,Building,Strategy,Survival,Zombies,RTS,Steampunk,Post-apocalyptic,City,Builder,Building,Tower,Defense,Singleplayer,Resource,Management,Real-Time,with,Pause,Early,Access,Tactical,Difficult,Management,Indie,Isometric'}
 url = 'https://store.steampowered.com/' + str(type) + '/' + str(id_num) + '/' + str(id_title)
 req = requests.get(url)
 html = req.text
 soup = BeautifulSoup(html, 'html.parser')
+
+
+#print(soup)
 
 ageCheck = soup.select(
     '#agecheck_form > h2'
@@ -123,13 +129,11 @@ tags = soup.select(
 developer = soup.select(
     '#developers_list > a'
 )
-# game_highlights > div.rightcol > div > div.glance_ctn_responsive_left > div > div:nth-child(5) > div.summary.column > a
+
 publisher = soup.select(
     '#game_highlights > div > div > div > div > div > div.summary.column > a'
 )
-# game_highlights > div.rightcol > div > div.glance_ctn_responsive_left > div > div:nth-child(1) > div.summary.column > span.game_review_summary
-# game_highlights > div.rightcol > div > div.glance_ctn_responsive_left > div > div:nth-child(1) > div.summary.column > span.game_review_summary.positive
-# game_highlights > div.rightcol > div > div.glance_ctn_responsive_left > div > div:nth-child(2) > div.summary.column > span.responsive_hidden
+
 recent_review = soup.select(
     '#game_highlights > div > div > div > div > div > div > span'
 )
@@ -140,8 +144,11 @@ info = soup.select(
     '#game_highlights > div > div > div.glance_ctn_responsive_left > div '
 )
 
-information = info[0]
-
+try:
+    information = info[0]
+except IndexError:
+    print("INDEX OUT OF RANGE")
+    quit()
 # print(information)
 a = getReviews(information.text)
 #print(a)
