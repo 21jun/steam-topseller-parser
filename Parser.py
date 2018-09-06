@@ -8,18 +8,18 @@ from bs4 import BeautifulSoup
 
 def month_converter(month):
     return {
-        'Jan': '1',
-        'Feb': '2',
-        'Mar': '3',
-        'Apr': '4',
-        'May': '5',
-        'Jun': '6',
-        'Jul': '7',
-        'Aug': '8',
-        'Sep': '9',
-        'Oct': '10',
-        'Nov': '11',
-        'Dec': '12'
+        'JAN': '1',
+        'FEB': '2',
+        'MAR': '3',
+        'APR': '4',
+        'MAY': '5',
+        'JUN': '6',
+        'JUL': '7',
+        'AUG': '8',
+        'SEP': '9',
+        'OCT': '10',
+        'NOV': '11',
+        'DEC': '12'
     }[month]
 
 
@@ -32,11 +32,11 @@ def clean_date(date):
     if len(date) < 3:
         return '0000-00-00'
     if 'th' in date[1]:
-        result = date[2] + '-' + month_converter(date[0][0:3]) + '-' + date[1].replace('th', '')
+        result = date[2] + '-' + month_converter(date[0][0:3].upper()) + '-' + date[1].replace('th', '')
     elif date[1].isdigit():
-        result = date[2] + '-' + month_converter(date[0]) + '-' + date[1]
+        result = date[2] + '-' + month_converter(date[0].upper()) + '-' + date[1]
     else:
-        result = date[2] + '-' + month_converter(date[1]) + '-' + date[0]
+        result = date[2] + '-' + month_converter(date[1].upper()) + '-' + date[0]
     return result
 
 
@@ -114,6 +114,7 @@ for page in range(1, 41):
                       'id_num': clean_id(links[i], False),
                       'id_title': clean_id(links[i], True),
                       'type': links[i].get('href').split('/')[3]})
+        # print(games)
 
 for i in range(0, 1000):
     print(
