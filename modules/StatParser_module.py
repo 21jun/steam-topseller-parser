@@ -2,7 +2,6 @@ import requests
 import modules.DateFormatter as DatePass
 from bs4 import BeautifulSoup
 import threading
-import StatParser
 
 sql = '''
     INSERT INTO oasis.player_count(title, ranking, date, current_players, peak_today, type, id_title, id_num, concurrent_steam_users, peak_steam_users) VALUES ("%s","%d","%s","%d","%d","%s","%s","%s","%d","%d")
@@ -13,8 +12,6 @@ sql_2 = '''
     '''
 
 url = 'https://store.steampowered.com/stats/Steam-Game-and-Player-Statistics'
-
-delay = StatParser.delay
 
 
 def get_steam_users(steam_users):
@@ -35,7 +32,7 @@ def get_id(link):
         print('ERROR IN LINK')
 
 
-def player_parser(second=delay, end=False, repeat=0, db=None):
+def stat_parser(second=300.0, end=False, repeat=0, db=None):
     repeat += 1
     if end:
         return
@@ -98,5 +95,5 @@ def player_parser(second=delay, end=False, repeat=0, db=None):
             ))
     print("---------------------------------", "[", repeat, "]", "------------------------------------")
 
-    threading.Timer(second, player_parser, [delay, False, repeat, db]).start()
+    threading.Timer(second, stat_parser, [second, False, repeat, db]).start()
     # pass parameters in []

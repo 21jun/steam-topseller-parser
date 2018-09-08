@@ -1,8 +1,8 @@
 import odbc
-import modules.StatParser_module as sp
+import modules.TopSellerParser_module as tp
 
 # params
-delay = 300.0  # sec
+delay = 3600  # sec
 repeat = 0  # count
 end = False  # exit code
 
@@ -10,4 +10,4 @@ end = False  # exit code
 connect = odbc.odbc('oasis')
 db = connect.cursor()
 
-sp.stat_parser(delay, False, repeat, db)
+tp.top_seller_parser(delay, end, repeat, db)
