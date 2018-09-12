@@ -78,62 +78,75 @@ def clean_id(id, isTitle):
 
 
 def top_seller_parser(second=300.0, end=False, repeat=0, db=None):
-    repeat += 1
-    games = []
-    if end:
-        return
-    # TODO
-    print("[START]")
-    for page in range(1, 41):
-        # sleep(0.1)
-        # parsing
-        url = 'https://store.steampowered.com/search/?category1=998&filter=topsellers&page=' + str(page)
-        req = requests.get(url)
-        html = req.text
-        soup = BeautifulSoup(html, 'html.parser')
+    try:
+        repeat += 1
+        games = []
+        if end:
+            return
+        # TODO
+        print("[START]")
+        for page in range(1, 41):
+            # sleep(0.1)
+            # parsing
+            url = 'https://store.steampowered.com/search/?category1=998&filter=topsellers&page=' + str(page)
+            req = requests.get(url)
+            html = req.text
+            soup = BeautifulSoup(html, 'html.parser')
 
-        titles = soup.select(
-            'div.responsive_search_name_combined > div.col.search_name.ellipsis > span'
-        )
-        release_dates = soup.select(
-            'div.responsive_search_name_combined > div.col.search_released.responsive_secondrow'
-        )
-        prices = soup.select(
-            'div.responsive_search_name_combined > div.col.search_price_discount_combined.responsive_secondrow > div.col.search_price.responsive_secondrow'
-        )
-        links = soup.select(
-            '#search_result_container > div > a'
-        )
+            titles = soup.select(
+                'div.responsive_search_name_combined > div.col.search_name.ellipsis > span'
+            )
+            release_dates = soup.select(
+                'div.responsive_search_name_combined > div.col.search_released.responsive_secondrow'
+            )
+            prices = soup.select(
+                'div.responsive_search_name_combined > div.col.search_price_discount_combined.responsive_secondrow > div.col.search_price.responsive_secondrow'
+            )
+            links = soup.select(
+                '#search_result_container > div > a'
+            )
 
-        for i in range(0, 25):
-            games.append({'rank': int(i + 1 + (page - 1) * 25),
-                          'title': titles[i].text.replace('\"', "'"),
-                          'release': clean_date(release_dates[i].text),
-                          'date': date,
-                          'price': (clean_str(prices[i].text, False)),
-                          'price_discounted': (clean_str(prices[i].text, True)),
-                          'id_num': clean_id(links[i], False),
-                          'id_title': clean_id(links[i], True),
-                          'type': links[i].get('href').split('/')[3]})
-            # print(games)
-    for i in range(0, 1000):
-        print(
-            games[i]['rank'],
-            games[i]['title'],
-            games[i]['release'],
-            games[i]['date'],
-            games[i]['price'],
-            games[i]['price_discounted'],
-            games[i]['id_num'],
-            games[i]['id_title'],
-            games[i]['type'])
+            for i in range(0, 25):
+                games.append({'rank': int(i + 1 + (page - 1) * 25),
+                              'title': titles[i].text.replace('\"', "'"),
+                              'release': clean_date(release_dates[i].text),
+                              'date': date,
+                              'price': (clean_str(prices[i].text, False)),
+                              'price_discounted': (clean_str(prices[i].text, True)),
+                              'id_num': clean_id(links[i], False),
+                              'id_title': clean_id(links[i], True),
+                              'type': links[i].get('href').split('/')[3]})
+                # print(games)
+        for i in range(0, 1000):
+            print(
+                games[i]['rank'],
+                games[i]['title'],
+                games[i]['release'],
+                games[i]['date'],
+                games[i]['price'],
+                games[i]['price_discounted'],
+                games[i]['id_num'],
+                games[i]['id_title'],
+                games[i]['type'])
 
-    for i in range(0, 1000):
-        db.execute(sql % (
-            games[i]['title'], games[i]['rank'], games[i]['price'], games[i]['price_discounted'], games[i]['date'],
-            games[i]['release'], games[i]['type'], games[i]['id_title'], games[i]['id_num']))
+        for i in range(0, 1000):
+            print(games[i]['title'])
+            try:
+                db.execute(sql % (
+                    games[i]['title'], games[i]['rank'], games[i]['price'], games[i]['price_discounted'], games[i]['date'],
+                    games[i]['release'], games[i]['type'], games[i]['id_title'], games[i]['id_num']))
+            except:
+                print("UNICODE PROBLEM")
+                db.execute(sql % (
+                    "NONE", games[i]['rank'], games[i]['price'], games[i]['price_discounted'], games[i]['date'],
+                    games[i]['release'], games[i]['type'], games[i]['id_title'], games[i]['id_num']))
 
-    Checker.check('games')
-    print("---------------------------------", "[", repeat, "]", "------------------------------------")
-    threading.Timer(second, top_seller_parser, [second, False, repeat, db]).start()
+        Checker.check('games')
+        print("---------------------------------", "[", repeat, "]", "------------------------------------")
+        threading.Timer(second, top_seller_parser, [second, False, repeat, db]).start()
+
+    except:
+        print("EXCEPT OCCUR")
+        print("---------------------------------", "[", repeat, "]", "------------------------------------")
+        threading.Timer(second, top_seller_parser, [second, False, repeat, db]).start()
     # pass parameters in []
