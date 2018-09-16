@@ -13,6 +13,8 @@ sql_2 = '''
 
 url = 'https://store.steampowered.com/stats/Steam-Game-and-Player-Statistics'
 
+repeat = 0
+
 
 def get_steam_users(steam_users):
     users_cnt = []
@@ -32,10 +34,10 @@ def get_id(link):
         print('ERROR IN LINK')
 
 
-def stat_parser(second=300.0, end=False, repeat=0, db=None):
+def stat_parser(db):
+    global repeat
     repeat += 1
-    if end:
-        return
+
     # TODO
     req = requests.get(url)
     html = req.text
@@ -94,6 +96,3 @@ def stat_parser(second=300.0, end=False, repeat=0, db=None):
                 game['concurrent_steam_users'], game['peak_steam_users']
             ))
     print("---------------------------------", "[", repeat, "]", "------------------------------------")
-
-    threading.Timer(second, stat_parser, [second, False, repeat, db]).start()
-    # pass parameters in []

@@ -3,11 +3,14 @@ from bs4 import BeautifulSoup
 import threading
 import Checker
 import modules.DateFormatter as DatePass
+import time
 
 date = DatePass.date_pass()
 sql = '''
     INSERT INTO oasis.games(title, ranking, price, price_discounted, date, release_date, type, id_title, id_num) VALUES ("%s","%d","%d","%d","%s","%s","%s","%s","%s")
     '''
+
+repeat = 0
 
 
 def month_converter(month):
@@ -28,21 +31,23 @@ def month_converter(month):
 
 
 def clean_date(date):
-    if date == '':
+    try:
+        if date == '':
+            return '0000-00-00'
+        date = date.replace(',', '')
+        date = date.replace('.', '')
+        date = date.split(' ')
+        if len(date) < 3:
+            return '0000-00-00'
+        if 'th' in date[1]:
+            result = date[2] + '-' + month_converter(date[0][0:3].upper()) + '-' + date[1].replace('th', '')
+        elif date[1].isdigit():
+            result = date[2] + '-' + month_converter(date[0].upper()) + '-' + date[1]
+        else:
+            result = date[2] + '-' + month_converter(date[1].upper()) + '-' + date[0]
+        return result
+    except:
         return '0000-00-00'
-    date = date.replace(',', '')
-    date = date.replace('.', '')
-    date = date.split(' ')
-    if len(date) < 3:
-        return '0000-00-00'
-    if 'th' in date[1]:
-        result = date[2] + '-' + month_converter(date[0][0:3].upper()) + '-' + date[1].replace('th', '')
-    elif date[1].isdigit():
-        result = date[2] + '-' + month_converter(date[0].upper()) + '-' + date[1]
-    else:
-        result = date[2] + '-' + month_converter(date[1].upper()) + '-' + date[0]
-    return result
-
 
 def clean_str(str, isDiscounted):
     result = str.replace('\t', '')
@@ -77,12 +82,11 @@ def clean_id(id, isTitle):
         return 'NONE'
 
 
-def top_seller_parser(second=300.0, end=False, repeat=0, db=None):
+def top_seller_parser(db):
+    global repeat
     try:
         repeat += 1
         games = []
-        if end:
-            return
         # TODO
         print("[START]")
         for page in range(1, 41):
@@ -106,7 +110,9 @@ def top_seller_parser(second=300.0, end=False, repeat=0, db=None):
                 '#search_result_container > div > a'
             )
 
+            # print(soup)
             for i in range(0, 25):
+                # print(page)
                 games.append({'rank': int(i + 1 + (page - 1) * 25),
                               'title': titles[i].text.replace('\"', "'"),
                               'release': clean_date(release_dates[i].text),
@@ -133,7 +139,8 @@ def top_seller_parser(second=300.0, end=False, repeat=0, db=None):
             print(games[i]['title'])
             try:
                 db.execute(sql % (
-                    games[i]['title'], games[i]['rank'], games[i]['price'], games[i]['price_discounted'], games[i]['date'],
+                    games[i]['title'], games[i]['rank'], games[i]['price'], games[i]['price_discounted'],
+                    games[i]['date'],
                     games[i]['release'], games[i]['type'], games[i]['id_title'], games[i]['id_num']))
             except:
                 print("UNICODE PROBLEM")
@@ -143,10 +150,6 @@ def top_seller_parser(second=300.0, end=False, repeat=0, db=None):
 
         Checker.check('games')
         print("---------------------------------", "[", repeat, "]", "------------------------------------")
-        threading.Timer(second, top_seller_parser, [second, False, repeat, db]).start()
-
     except:
-        print("EXCEPT OCCUR")
+        print("ERROR OCCUR")
         print("---------------------------------", "[", repeat, "]", "------------------------------------")
-        threading.Timer(second, top_seller_parser, [second, False, repeat, db]).start()
-    # pass parameters in []
