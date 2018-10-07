@@ -91,6 +91,7 @@ def top_seller_parser(db):
         print("[START]")
         for page in range(1, 41):
             # sleep(0.1)
+            date = DatePass.date_pass()
             # parsing
             url = 'https://store.steampowered.com/search/?category1=998&filter=topsellers&page=' + str(page)
             req = requests.get(url)

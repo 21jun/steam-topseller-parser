@@ -12,4 +12,4 @@ db = connect.cursor()
 schedule.every(5).minutes.do(sp.stat_parser, db)
 while True:
     schedule.run_pending()
-    time.sleep(1)
+    time.sleep(10)
